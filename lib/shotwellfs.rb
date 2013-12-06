@@ -161,7 +161,7 @@ HELP
 
     def event_xattr(event)
         xattr = {}
-        xattr['user.event_id'] = event[:id]
+        xattr['user.event_id'] = event[:id].to_s
         xattr['user.event_name'] = event[:name]
         xattr['user.event_comment'] = event[:comment]
         return xattr
@@ -181,7 +181,7 @@ HELP
         xattr = { }
         xattr['user.title'] = image[:title]
         xattr['user.comment'] =  image[:comment]
-        xattr['user.photoid'] = image[:id]
+        xattr['user.photoid'] = image[:id].to_s
 
         keywords = @keywords[image[:type]][image[:id]]
         keywords << "*" * image[:rating]
