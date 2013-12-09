@@ -5,7 +5,7 @@ require 'shotwellfs/version'
 
 Gem::Specification.new do |gem|
   gem.name          = "shotwellfs"
-  gem.version       = Shotwellfs::VERSION
+  gem.version       = ShotwellFS::VERSION
   gem.authors       = ["Grant Gardner"]
   gem.email         = ["grant@lastweekend.com.au"]
   gem.description   = %q{A Fuse filesystem to remap image files according to shotwell metadata}
@@ -20,4 +20,8 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency("sqlite3","~>1.3")
   gem.add_runtime_dependency("rfusefs","~>1.0")
   gem.add_runtime_dependency("listen","~>2.2.0")
+  gem.add_runtime_dependency("rmagick")
+  gem.add_runtime_dependency("iniparse", "~>1.1.6")
+  gem.add_runtime_dependency("ffi-xattr")
+
 end
