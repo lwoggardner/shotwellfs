@@ -10,13 +10,20 @@ Provides a FUSE filesystem over a Shotwell database of photos and videos (http:/
 
 Start shotwellfs
 
-    $ shotwellfs <path/to/photo.db> <mountpoint> [ -o mountoptions ]
+    $ shotwellfs <path/to/shotwell-dir> <mountpoint> [ -o mountoptions ]
 
-Navigate to <mountpoint> in your favourite file browser and see your photos layed out as events
+_shotwell-dir_ is the directory containing shotwell's private data (ie data/photo.db)
 
-For more advanced usage see
+Navigate to _mountpoint_ in your favourite file browser and see your photos layed out as events
 
-    $shotwellfs -h
+   * Crop and RedEye transformations are applied to JPG and TIF images (and cached in shotwell_dir)
+
+   * Shotwell event and photo information is available via extended attributes and thus easier to parse
+     regardless of filetype
+
+For more advanced usage, including controlling how events are mapped to directories, see
+
+    $ shotwellfs -h
 
 ## Contributing
 
