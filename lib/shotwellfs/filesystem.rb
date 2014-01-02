@@ -4,6 +4,7 @@ require 'date'
 require 'set'
 require 'fileutils'
 require 'ffi-xattr'
+require 'rb-inotify'
 
 module ShotwellFS
 
@@ -170,6 +171,17 @@ module ShotwellFS
             return tm ? [0, tm, tm] : [0, 0, 0]
         end
 
+        def mounted()
+            super
+            start_notifier()
+        end
+
+        def unmounted()
+            stop_notifier()
+            super
+        end
+
+
         private 
 
         attr_reader :events,:keywords
@@ -263,5 +275,23 @@ module ShotwellFS
             node
         end
 
+        def start_notifier
+            @notifier ||= INotify::Notifier.new()
+            modified = false
+            @notifier.watch(db_path,:modify,:close_write) do |event|
+                modified = modified || event.flags.include?(:modify)
+                if modified && event.flags.include?(:close_write)
+                    puts "calling rescan"
+                    rescan
+                    puts "rescanned"
+                    modified = false
+                end
+            end
+            Thread.new { @notifier.run }
+        end
+
+        def stop_notifier
+            @notifier.stop() if @notifier
+        end
     end
 end

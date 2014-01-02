@@ -1,11 +1,7 @@
 #!/usr/bin/env ruby 
 
-begin
-    require 'shotwellfs'
-rescue LoadError
-    require 'bundler'
-    require 'shotwellfs'
-end
+require 'bundler/setup'
+require 'shotwellfs'
 
 ShotwellFS.main(*ARGV)
 

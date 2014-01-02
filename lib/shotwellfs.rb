@@ -25,7 +25,9 @@ module ShotwellFS
 
         FuseFS.main(args,OPTIONS,OPTION_USAGE,"path/to/shotwell_dir") do |options|
             if options[:device] && File.exists?("#{options[:device]}/data/photo.db")
-                FileSystem.new(options)
+                fs = FileSystem.new(options)
+                Signal.trap("HUP") { fs.rescan() }
+                fs
             else
                 puts "shotwellfs: failed to access Shotwell photo database #{options[:device]}/data/photo.db"
                 nil
