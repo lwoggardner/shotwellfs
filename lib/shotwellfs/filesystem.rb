@@ -4,6 +4,7 @@ require 'date'
 require 'set'
 require 'fileutils'
 require 'ffi-xattr'
+require 'sys/filesystem'
 require 'rb-inotify'
 
 module ShotwellFS
@@ -86,6 +87,7 @@ module ShotwellFS
             min_rating  = options[:rating] || 0
 
             sql = sprintf(SHOTWELL_SQL,min_rating)
+
             super(shotwell_db,sql,use_raw_file_access: true)
         end
 
@@ -169,6 +171,12 @@ module ShotwellFS
 
             #set mtime and ctime to the exposure time
             return tm ? [0, tm, tm] : [0, 0, 0]
+        end
+
+        def statistics(path)
+            df_path = unmap(path) || @shotwell_dir
+            df = Sys::Filesystem.stat(df_path)
+            stats.to_statistics(df.blocks_available * df.block_size, df.files_free)
         end
 
         def mounted()

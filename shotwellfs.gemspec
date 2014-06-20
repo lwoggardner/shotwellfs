@@ -18,11 +18,12 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_runtime_dependency("sqlite3","~>1.3")
-  gem.add_runtime_dependency("rfusefs","=1.0.2.RC0")
+  gem.add_runtime_dependency("rfusefs",">=1.0.2")
   gem.add_runtime_dependency("rb-inotify","~>0.9")
   gem.add_runtime_dependency("rmagick","~>2.13")
   gem.add_runtime_dependency("iniparse","~>1.1")
   gem.add_runtime_dependency("ffi-xattr","~>0.0")
+  gem.add_runtime_dependency("sys-filesystem")
   gem.add_development_dependency("yard")
   gem.add_development_dependency("redcarpet")
 

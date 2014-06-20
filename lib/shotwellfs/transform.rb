@@ -172,6 +172,7 @@ module ShotwellFS
             crop.apply(image) if crop
 
             image.write(output)
+            image.destroy!
         end
 
         def to_s
