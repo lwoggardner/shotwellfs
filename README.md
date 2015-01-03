@@ -25,6 +25,13 @@ For more advanced usage, including controlling how events are mapped to director
 
     $ shotwellfs -h
 
+== DEVELOPERS:
+
+After checking out the source, run:
+
+    $ bundle install # install dependencies
+    $ bundle exec bin/shotwellfs -h
+
 ## Contributing
 
 1. Fork it
