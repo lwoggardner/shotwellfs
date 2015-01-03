@@ -15,7 +15,7 @@ module ShotwellFS
                         Available event fields - id, name, comment
                         (default "%Y-%m %<name>s")
     -o photo_path=FMT   strftime and sprintf format to generate path for photo files
-                        Available photo fields - id, title, comment, rating
+                        Available photo fields - id, filename, title, comment, rating
                         (default "%<id>d")
     -o video_path=FMT  as above for video files. If not set, photo_path is used.
 

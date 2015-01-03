@@ -25,13 +25,13 @@ module ShotwellFS
 
         SHOTWELL_SQL = <<-SQL
         SELECT P.rating as 'rating', P.exposure_time as 'exposure_time',
-               P.title as 'title', P.comment as 'comment', P.filename as 'filename', P.id as 'id',
+               P.title as 'title', P.comment as 'comment', P.filename as 'filepath', P.id as 'id',
                P.event_id as 'event_id', "photo" as 'type', P.transformations as 'transformations'
         FROM phototable P
         WHERE P.rating >= %1$d and P.event_id > 0
         UNION
         SELECT V.rating, V.exposure_time as 'exposure_time',
-               V.title, V.comment, V.filename as 'filename', V.id as 'id',
+               V.title, V.comment, V.filename as 'filepath', V.id as 'id',
                V.event_id as 'event_id', "video" as 'type', null
         FROM videotable V
         WHERE V.rating >= %1$d  and V.event_id > 0
@@ -76,9 +76,9 @@ module ShotwellFS
             example_event = { id:  1, name: "<event name>", comment: "<event comment>", exposure_time: 0} 
 
             example_photo = { id: 1000, title: "<photo title>", comment: "<photo comment>",
-                rating:5, exposure_time: Time.now.to_i, filename: "photo.jpg", type: "photo" }
+                rating:5, exposure_time: Time.now.to_i, filepath: "photo.jpg", type: "photo", filename: 'photo' }
             example_video = { id: 1000, title: "<photo title>", comment: "<photo comment>",
-                rating:5, exposure_time: Time.now.to_i, filename: "video.mp4", type: "video" }
+                rating:5, exposure_time: Time.now.to_i, filepath: "video.mp4", filename: "video", type: "video" }
 
             event_path = event_path(example_event)
 
@@ -99,8 +99,8 @@ module ShotwellFS
             @transforms_dir
         end
 
-        def transform_required?(filename,transform_id)
-            !(File.exists?(filename) && transform_id.eql?(Xattr.new(filename)[XATTR_TRANSFORM_ID]))
+        def transform_required?(filepath,transform_id)
+            !(File.exists?(filepath) && transform_id.eql?(Xattr.new(filepath)[XATTR_TRANSFORM_ID]))
         end
 
         def transform(row)
@@ -109,31 +109,33 @@ module ShotwellFS
                 transformations = Transform.new(row[:transformations])
 
                 transform_id = transformations.generate_id(row[:id])
-                filename = "#{transforms_dir}/#{row[:id]}.jpg"
+                filepath = "#{transforms_dir}/#{row[:id]}.jpg"
 
                 if transform_id 
 
-                    if transform_required?(filename,transform_id)
+                    if transform_required?(filepath,transform_id)
 
-                        puts "Generating transform for #{row[:filename]}"
-                        puts "Writing to #{filename} with id #{transform_id}"
+                        puts "Generating transform for #{row[:filepath]}"
+                        puts "Writing to #{filepath} with id #{transform_id}"
                         puts transformations
 
-                        transformations.apply(row[:filename],filename)
+                        transformations.apply(row[:filepath],filepath)
 
-                        xattr = Xattr.new(filename)
+                        xattr = Xattr.new(filepath)
                         xattr[XATTR_TRANSFORM_ID] = transform_id
                     end
 
-                    return [ transform_id, filename ]
+                    return [ transform_id, filepath ]
                 end
             end
             # Ho transforms
-            [ row[:id],row[:filename] ]
+            [ row[:id],row[:filepath] ]
         end
 
         def map_row(row)
             row = symbolize(row)
+            row[:filename] = File.basename(row[:filepath],'.*')
+
             xattr = file_xattr(row)
 
             transform_id, real_file = transform(row)
@@ -159,6 +161,7 @@ module ShotwellFS
 
             puts "Scan ##{scan_id} Finding images and photos for #{@events.size} events"
             super
+            puts "Scan ##{scan_id} complete"
             @keywords= nil
             @events = nil
         end
@@ -212,13 +215,13 @@ module ShotwellFS
         end
 
         def file_path(event_path,image)
-            ext = File.extname(image[:filename]).downcase
+            ext = File.extname(image[:filepath]).downcase
 
             format = image['type'] == 'photo' ? @photo_path : @video_path
 
-            filename = sprintf(Time.at(image[:exposure_time]).strftime(format),image)
+            filepath = sprintf(Time.at(image[:exposure_time]).strftime(format),image)
 
-            return "#{event_path}/#{filename}#{ext}"
+            return "#{event_path}/#{filepath}#{ext}"
         end
 
         def file_xattr(image)
