@@ -189,6 +189,9 @@ module ShotwellFS
             super
         end
 
+        def sighup()
+            rescan
+        end
 
         private 
 
