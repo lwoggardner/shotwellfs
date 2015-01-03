@@ -25,7 +25,7 @@ For more advanced usage, including controlling how events are mapped to director
 
     $ shotwellfs -h
 
-== DEVELOPERS:
+## Developers
 
 After checking out the source, run:
 
