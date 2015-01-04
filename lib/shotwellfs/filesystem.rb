@@ -132,18 +132,32 @@ module ShotwellFS
             [ row[:id],row[:filepath] ]
         end
 
+        def map_tags(real_file, row)
+            keywords = @keywords[row[:type]][row[:id]]
+            # TODO: Push the capability to map multiple nodes to the same real path up to SqliteMapper/PathMapper in RFuseFS
+            # which would avoid the hackery involving :sqlite_scan_id below. This is required to prevent SqliteMapper
+            # from cleaning up files which it thinks belong to a previous scan.
+            options = { :exposure_time => row[:exposure_time], :xattr => row[:xattr], :sqlite_scan_id => scan_id  }
+            # TODO: Normalise the keywords, so only the last entry in a hierarchy is used (perhaps in load_keywords, or here)
+            keywords.each do |tag|
+                #TODO: Make the tag path an option (like event_path)
+                path = file_path("tags#{tag}",row)
+                map_file(real_file,path,options)
+            end
+        end
+
         def map_row(row)
             row = symbolize(row)
             row[:filename] = File.basename(row[:filepath],'.*')
-
-            xattr = file_xattr(row)
+            row[:xattr] = file_xattr(row)
 
             transform_id, real_file = transform(row)
-            xattr[XATTR_TRANSFORM_ID] =  transform_id.to_s
+            row[:xattr][XATTR_TRANSFORM_ID] =  transform_id.to_s
+
+            map_tags(real_file,row)
 
             path = file_path(@events[row[:event_id]].path,row)
-
-            options = { :exposure_time => row[:exposure_time], :event_id => row[:event_id], :xattr => xattr }
+            options = { :exposure_time => row[:exposure_time], :event_id => row[:event_id], :xattr => row[:xattr]}
             [ real_file, path, options ]
         end
 
@@ -266,7 +280,7 @@ module ShotwellFS
                 # just use the last entry on the tag path
                 slash = name.rindex('/')
 
-                tag = slash ? name[slash+1..-1] : name
+                tag = name # slash ? name[slash+1..-1] : name
                 photo_list.split(",").each do |item|
                     type = self.class.source_type(item)
                     id = self.class.source_id(item)
@@ -279,7 +293,8 @@ module ShotwellFS
         def map_file(*args)
             node = super
             parent = node.parent
-            unless parent[:sw_scan_id] == scan_id
+            # The first time we see a parent directory, add xattrs for the event.
+            if node[:event_id] && parent[:sw_scan_id] != scan_id
                 event_id = node[:event_id]
                 event = @events[event_id]
                 parent[:xattr] = event.xattr
